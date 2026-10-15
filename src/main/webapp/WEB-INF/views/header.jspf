@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><c:out value="${pageTitle}" default="Home"/> | <c:out value="${siteName}" default="Pet Adoption Platform"/></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="${pageContext.request.contextPath}/static/style.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand" href="${pageContext.request.contextPath}/pets">&#128062; <c:out value="${siteName}" default="Pet Adoption Platform"/></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/pets">Browse Pets</a></li>
+        <c:if test="${not empty sessionScope.user}">
+          <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}${sessionScope.user.dashboardPath}">Dashboard</a></li>
+          <c:if test="${not sessionScope.user.admin}">
+            <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/app/messages">Messages</a></li>
+          </c:if>
+        </c:if>
+      </ul>
+      <ul class="navbar-nav">
+        <c:choose>
+          <c:when test="${not empty sessionScope.user}">
+            <li class="nav-item"><span class="navbar-text me-3"><c:out value="${sessionScope.user.name}"/> <span class="badge text-bg-secondary"><c:out value="${sessionScope.user.roleLabel}"/></span></span></li>
+            <li class="nav-item"><a class="btn btn-outline-light btn-sm" href="${pageContext.request.contextPath}/logout">Logout</a></li>
+          </c:when>
+          <c:otherwise>
+            <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/login">Login</a></li>
+            <li class="nav-item"><a class="btn btn-warning btn-sm" href="${pageContext.request.contextPath}/register">Register</a></li>
+          </c:otherwise>
+        </c:choose>
+      </ul>
+    </div>
+  </div>
+</nav>
+<main class="container my-4">
+<c:if test="${not empty sessionScope.flashMsg}">
+  <div class="alert alert-${sessionScope.flashType == 'error' ? 'danger' : 'success'} alert-dismissible fade show" role="alert">
+    <c:out value="${sessionScope.flashMsg}"/>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  <c:remove var="flashMsg" scope="session"/>
+  <c:remove var="flashType" scope="session"/>
+</c:if>
+<c:if test="${not empty error}">
+  <div class="alert alert-danger"><c:out value="${error}"/></div>
+</c:if>

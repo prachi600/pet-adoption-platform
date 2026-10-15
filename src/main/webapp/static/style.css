@@ -1,0 +1,9 @@
+body { background: #f6f7fb; }
+.navbar-brand { font-weight: 700; letter-spacing: .3px; }
+.hero { background: linear-gradient(135deg, #ff8a5c, #ffb25c); color: #fff; border-radius: 1rem; }
+.pet-card { transition: transform .15s ease, box-shadow .15s ease; border: 0; }
+.pet-card:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1.2rem rgba(0,0,0,.12); }
+.pet-emoji { font-size: 3.5rem; line-height: 1; }
+.stat-card { border: 0; border-left: 4px solid #ff8a5c; }
+.table-responsive { background: #fff; border-radius: .5rem; }
+footer { color: #888; font-size: .85rem; }
