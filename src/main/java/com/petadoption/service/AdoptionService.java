@@ -152,6 +152,27 @@ public class AdoptionService {
                 "The shelter has " + verdict + " your adoption application.");
     }
 
+    public List<AdoptionApplication> applicationsForAdopter(int adopterId) throws AppException {
+        return applicationDao.findByAdopter(adopterId);
+    }
+
+    public List<AdoptionApplication> applicationsForShelter(int shelterId) throws AppException {
+        return applicationDao.findByShelter(shelterId);
+    }
+
+    /** Counts of an adopter's applications per status plus TOTAL (keys are the status names). */
+    public Map<String, Long> applicationStatistics(List<AdoptionApplication> apps) {
+        Map<String, Long> stats = new LinkedHashMap<>();
+        stats.put("TOTAL", (long) apps.size());
+        for (ApprovalStatus s : ApprovalStatus.values()) {
+            stats.put(s.name(), 0L);
+        }
+        for (AdoptionApplication a : apps) {
+            stats.merge(a.getStatus().name(), 1L, Long::sum);
+        }
+        return stats;
+    }
+
     // -------------------------------------------------------------- messages
 
     public void sendMessage(User sender, int receiverId, Integer petId, String content) throws AppException {

@@ -1,23 +1,66 @@
 package com.petadoption.service;
 
+import com.petadoption.dao.ApplicationDao;
+import com.petadoption.dao.PetDao;
 import com.petadoption.dao.SettingsDao;
 import com.petadoption.dao.ShelterDao;
 import com.petadoption.dao.UserDao;
 import com.petadoption.exception.AppException;
 import com.petadoption.exception.ValidationException;
+import com.petadoption.model.AdoptionApplication;
+import com.petadoption.model.ApprovalStatus;
+import com.petadoption.model.Pet;
 import com.petadoption.model.Role;
 import com.petadoption.model.Shelter;
 import com.petadoption.model.User;
 import com.petadoption.util.Validator;
 
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /** Operations only the administrator may perform: user management and system settings. */
 public class AdminService {
     private final UserDao userDao = new UserDao();
     private final ShelterDao shelterDao = new ShelterDao();
     private final SettingsDao settingsDao = new SettingsDao();
+    private final PetDao petDao = new PetDao();
+    private final ApplicationDao applicationDao = new ApplicationDao();
     private final AuthService authService = new AuthService();
+
+    // ---------------------------------------------------- dashboard (read side)
+
+    /** Headline numbers for the admin dashboard. */
+    public Map<String, Long> dashboardStats() throws AppException {
+        Map<String, Long> stats = new LinkedHashMap<>();
+        stats.put("users", userDao.countAll());
+        stats.put("pendingPets", petDao.countByStatus(ApprovalStatus.PENDING));
+        stats.put("pendingApps", applicationDao.countByStatus(ApprovalStatus.PENDING));
+        stats.put("adoptedPets", petDao.countByStatus(ApprovalStatus.ADOPTED));
+        return stats;
+    }
+
+    public List<User> listUsers() throws AppException {
+        return userDao.findAll();
+    }
+
+    public List<Pet> listAllPets() throws AppException {
+        return petDao.findAll();
+    }
+
+    /** All applications split into "pending" and "processed". */
+    public Map<String, List<AdoptionApplication>> applicationsByState() throws AppException {
+        List<AdoptionApplication> all = applicationDao.findAll();
+        Map<String, List<AdoptionApplication>> result = new LinkedHashMap<>();
+        result.put("pending", all.stream().filter(AdoptionApplication::isPending).collect(Collectors.toList()));
+        result.put("processed", all.stream().filter(a -> !a.isPending()).collect(Collectors.toList()));
+        return result;
+    }
+
+    public Map<String, String> getSettings() throws AppException {
+        return settingsDao.getAll();
+    }
 
     public User createUser(RegistrationRequest request) throws AppException {
         return authService.register(request, true);

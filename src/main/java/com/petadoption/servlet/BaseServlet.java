@@ -1,9 +1,9 @@
 package com.petadoption.servlet;
 
-import com.petadoption.dao.SettingsDao;
 import com.petadoption.exception.DatabaseException;
 import com.petadoption.exception.ValidationException;
 import com.petadoption.model.User;
+import com.petadoption.service.SettingsService;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -17,14 +17,14 @@ public abstract class BaseServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     protected static final String VIEWS = "/WEB-INF/views/";
 
-    private final transient SettingsDao settingsDao = new SettingsDao();
+    private final transient SettingsService settingsService = new SettingsService();
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
-        String siteName = "Pet Adoption Platform";
+        String siteName = SettingsService.DEFAULT_SITE_NAME;
         try {
-            siteName = settingsDao.get("site_name", siteName);
+            siteName = settingsService.getSiteName();
         } catch (DatabaseException e) {
             log("Could not load site name", e);
         }

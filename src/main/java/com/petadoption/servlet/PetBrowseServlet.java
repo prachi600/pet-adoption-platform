@@ -1,8 +1,8 @@
 package com.petadoption.servlet;
 
-import com.petadoption.dao.PetDao;
 import com.petadoption.exception.AppException;
 import com.petadoption.model.Pet;
+import com.petadoption.service.PetService;
 
 import java.io.IOException;
 import java.util.List;
@@ -15,28 +15,21 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "PetBrowseServlet", urlPatterns = "/pets")
 public class PetBrowseServlet extends BaseServlet {
     private static final long serialVersionUID = 1L;
-    private final transient PetDao petDao = new PetDao();
+    private final transient PetService petService = new PetService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
-            String id = param(req, "id");
-            if (!id.isEmpty()) {
-                Pet pet = petDao.findById(intParam(req, "id"));
-                if (pet == null || !(pet.getStatus().name().equals("APPROVED") || pet.getStatus().name().equals("ADOPTED"))) {
-                    flash(req, "error", "That pet could not be found.");
-                    redirect(req, resp, "/pets");
-                    return;
-                }
-                req.setAttribute("pet", pet);
+            if (!param(req, "id").isEmpty()) {
+                req.setAttribute("pet", petService.getPublicPet(intParam(req, "id")));
                 forward(req, resp, "pet-detail.jsp");
                 return;
             }
             String q = param(req, "q");
             String species = param(req, "species");
-            List<Pet> pets = petDao.search(q, species);
+            List<Pet> pets = petService.search(q, species);
             req.setAttribute("pets", pets);
-            req.setAttribute("speciesList", petDao.findApprovedSpecies());
+            req.setAttribute("speciesList", petService.approvedSpecies());
             req.setAttribute("q", q);
             req.setAttribute("species", species);
             forward(req, resp, "pets.jsp");

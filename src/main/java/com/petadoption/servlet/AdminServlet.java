@@ -1,12 +1,7 @@
 package com.petadoption.servlet;
 
-import com.petadoption.dao.ApplicationDao;
-import com.petadoption.dao.PetDao;
-import com.petadoption.dao.SettingsDao;
-import com.petadoption.dao.UserDao;
 import com.petadoption.exception.AppException;
 import com.petadoption.model.AdoptionApplication;
-import com.petadoption.model.ApprovalStatus;
 import com.petadoption.model.User;
 import com.petadoption.service.AdminService;
 import com.petadoption.service.AdoptionService;
@@ -17,7 +12,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -27,10 +21,6 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "AdminServlet", urlPatterns = "/app/admin")
 public class AdminServlet extends BaseServlet {
     private static final long serialVersionUID = 1L;
-    private final transient UserDao userDao = new UserDao();
-    private final transient PetDao petDao = new PetDao();
-    private final transient ApplicationDao applicationDao = new ApplicationDao();
-    private final transient SettingsDao settingsDao = new SettingsDao();
     private final transient AdminService adminService = new AdminService();
     private final transient AdoptionService adoptionService = new AdoptionService();
 
@@ -38,27 +28,28 @@ public class AdminServlet extends BaseServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String tab = param(req, "tab").isEmpty() ? "users" : param(req, "tab");
         try {
-            req.setAttribute("statUsers", userDao.countAll());
-            req.setAttribute("statPendingPets", petDao.countByStatus(ApprovalStatus.PENDING));
-            req.setAttribute("statPendingApps", applicationDao.countByStatus(ApprovalStatus.PENDING));
-            req.setAttribute("statAdopted", petDao.countByStatus(ApprovalStatus.ADOPTED));
+            Map<String, Long> stats = adminService.dashboardStats();
+            req.setAttribute("statUsers", stats.get("users"));
+            req.setAttribute("statPendingPets", stats.get("pendingPets"));
+            req.setAttribute("statPendingApps", stats.get("pendingApps"));
+            req.setAttribute("statAdopted", stats.get("adoptedPets"));
 
             switch (tab) {
                 case "pets":
-                    req.setAttribute("pets", petDao.findAll());
+                    req.setAttribute("pets", adminService.listAllPets());
                     break;
                 case "applications":
-                    List<AdoptionApplication> all = applicationDao.findAll();
-                    req.setAttribute("pendingList", all.stream().filter(AdoptionApplication::isPending).collect(Collectors.toList()));
-                    req.setAttribute("processedList", all.stream().filter(a -> !a.isPending()).collect(Collectors.toList()));
+                    Map<String, List<AdoptionApplication>> split = adminService.applicationsByState();
+                    req.setAttribute("pendingList", split.get("pending"));
+                    req.setAttribute("processedList", split.get("processed"));
                     break;
                 case "settings":
-                    req.setAttribute("settings", settingsDao.getAll());
+                    req.setAttribute("settings", adminService.getSettings());
                     req.setAttribute("notifications", NotificationService.getInstance().getRecent());
                     break;
                 default:
                     tab = "users";
-                    req.setAttribute("users", userDao.findAll());
+                    req.setAttribute("users", adminService.listUsers());
             }
             req.setAttribute("tab", tab);
             forward(req, resp, "admin.jsp");

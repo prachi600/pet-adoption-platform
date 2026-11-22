@@ -10,6 +10,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/** Public sign-up form. All validation and account rules live in {@link AuthService}. */
 @WebServlet(name = "RegisterServlet", urlPatterns = "/register")
 public class RegisterServlet extends BaseServlet {
     private static final long serialVersionUID = 1L;
@@ -32,17 +33,11 @@ public class RegisterServlet extends BaseServlet {
         r.setPhone(param(req, "phone"));
         r.setAddress(param(req, "address"));
         try {
-            if (!r.getPassword().equals(req.getParameter("confirmPassword"))) {
-                throw new com.petadoption.exception.ValidationException("Passwords do not match.");
-            }
-            authService.register(r, false); // public sign-up can never create an admin
+            authService.registerPublic(r, req.getParameter("confirmPassword"));
             flash(req, "success", "Account created. You can log in now.");
             redirect(req, resp, "/login");
         } catch (AppException e) {
             req.setAttribute("error", e.getMessage());
-            forward(req, resp, "register.jsp");
-        } catch (NullPointerException e) {
-            req.setAttribute("error", "Please fill in all fields.");
             forward(req, resp, "register.jsp");
         }
     }

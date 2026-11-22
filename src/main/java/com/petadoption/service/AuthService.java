@@ -65,6 +65,17 @@ public class AuthService {
         return user;
     }
 
+    /** Public sign-up: checks the confirm-password field, then registers a non-admin account. */
+    public User registerPublic(RegistrationRequest r, String confirmPassword) throws AppException {
+        if (r.getPassword() == null || confirmPassword == null) {
+            throw new ValidationException("Please fill in all fields.");
+        }
+        if (!r.getPassword().equals(confirmPassword)) {
+            throw new ValidationException("Passwords do not match.");
+        }
+        return register(r, false); // public sign-up can never create an admin
+    }
+
     public User login(String email, String password) throws AppException {
         if (email == null || email.trim().isEmpty() || password == null || password.isEmpty()) {
             throw new AuthenticationException("Please enter your email and password.");

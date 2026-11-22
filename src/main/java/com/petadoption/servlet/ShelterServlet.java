@@ -1,10 +1,10 @@
 package com.petadoption.servlet;
 
-import com.petadoption.dao.ApplicationDao;
-import com.petadoption.dao.PetDao;
 import com.petadoption.exception.AppException;
+import com.petadoption.model.Pet;
 import com.petadoption.model.ShelterUser;
 import com.petadoption.service.AdoptionService;
+import com.petadoption.service.PetService;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,8 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "ShelterServlet", urlPatterns = "/app/shelter")
 public class ShelterServlet extends BaseServlet {
     private static final long serialVersionUID = 1L;
-    private final transient PetDao petDao = new PetDao();
-    private final transient ApplicationDao applicationDao = new ApplicationDao();
+    private final transient PetService petService = new PetService();
     private final transient AdoptionService adoptionService = new AdoptionService();
 
     @Override
@@ -26,10 +25,10 @@ public class ShelterServlet extends BaseServlet {
         ShelterUser shelter = (ShelterUser) currentUser(req);
         String tab = param(req, "tab").isEmpty() ? "pets" : param(req, "tab");
         try {
-            List<com.petadoption.model.Pet> pets = petDao.findByShelter(shelter.getShelterId());
+            List<Pet> pets = petService.findByShelter(shelter.getShelterId());
             req.setAttribute("pets", pets);
             req.setAttribute("stats", adoptionService.petStatistics(pets));
-            req.setAttribute("applications", applicationDao.findByShelter(shelter.getShelterId()));
+            req.setAttribute("applications", adoptionService.applicationsForShelter(shelter.getShelterId()));
             req.setAttribute("tab", tab);
             forward(req, resp, "shelter.jsp");
         } catch (AppException e) {

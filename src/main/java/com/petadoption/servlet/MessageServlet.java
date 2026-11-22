@@ -1,10 +1,9 @@
 package com.petadoption.servlet;
 
-import com.petadoption.dao.MessageDao;
-import com.petadoption.dao.UserDao;
 import com.petadoption.exception.AppException;
 import com.petadoption.model.User;
 import com.petadoption.service.AdoptionService;
+import com.petadoption.service.MessageService;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -16,27 +15,17 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "MessageServlet", urlPatterns = "/app/messages")
 public class MessageServlet extends BaseServlet {
     private static final long serialVersionUID = 1L;
-    private final transient MessageDao messageDao = new MessageDao();
-    private final transient UserDao userDao = new UserDao();
+    private final transient MessageService messageService = new MessageService();
     private final transient AdoptionService adoptionService = new AdoptionService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         User user = currentUser(req);
         try {
-            req.setAttribute("messages", messageDao.findForUser(user.getId()));
-            java.util.List<User> contacts = userDao.findContactsFor(user);
-            // allow starting a conversation with a specific person (e.g. from a pet page or a reply link)
             String to = param(req, "to");
-            if (!to.isEmpty()) {
-                User target = userDao.findById(intParam(req, "to"));
-                boolean valid = target != null && target.isActive()
-                        && ((user.isAdopter() && target.isShelter()) || (user.isShelter() && target.isAdopter()));
-                if (valid && contacts.stream().noneMatch(c -> c.getId() == target.getId())) {
-                    contacts.add(target);
-                }
-            }
-            req.setAttribute("contacts", contacts);
+            Integer toId = to.isEmpty() ? null : intParam(req, "to");
+            req.setAttribute("messages", messageService.inboxFor(user));
+            req.setAttribute("contacts", messageService.contactsFor(user, toId));
             req.setAttribute("selectedTo", to);
             req.setAttribute("petId", param(req, "petId"));
             forward(req, resp, "messages.jsp");

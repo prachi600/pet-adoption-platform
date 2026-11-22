@@ -67,7 +67,8 @@ src/main/java/com/petadoption
 │               Role, ApprovalStatus (enums) · Approvable (interface) · UserFactory
 ├── dao/        Dao<T,ID> (generic interface) → AbstractDao<T,ID> → UserDao, PetDao, ShelterDao,
 │               ApplicationDao, MessageDao · SettingsDao · BaseDao (JDBC helpers)
-├── service/    AuthService, AdoptionService, AdminService, NotificationService, RegistrationRequest
+├── service/    AuthService, AdoptionService, AdminService, PetService, MessageService, SettingsService,
+│               NotificationService, RegistrationRequest
 ├── servlet/    BaseServlet → Login, Register, Logout, PetBrowse, Admin, Shelter, Adopter, Message
 ├── filter/     AuthFilter
 ├── listener/   AppContextListener (creates schema on start, stops threads on shutdown)
@@ -76,6 +77,17 @@ src/main/java/com/petadoption
 src/main/webapp/WEB-INF/views   JSP pages + header/footer fragments
 src/main/resources              schema.sql, db.properties
 ```
+
+### Layering rules (checked by automated tests)
+
+| Layer | Allowed to use | Must not |
+|-------|----------------|----------|
+| JSP | JSTL / EL, data set by the servlet | contain Java code (`<% %>`) or SQL tags |
+| Servlet | Services, request/session handling | import DAOs, `java.sql` or `Validator` (no SQL, no business rules) |
+| Service | DAOs, validation, business rules | use servlet or `javax.servlet` classes |
+| DAO | JDBC / `DBConnection` | use services or servlets |
+
+`ArchitectureTest` reads the source files and fails the build if any rule is broken.
 
 ## Database design
 
