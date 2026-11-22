@@ -5,6 +5,8 @@ manage applications, and an **administrator** manages users, approves listings a
 
 Built with **Java 8+, Servlets, JSP/JSTL, JDBC** (H2 by default, MySQL supported) and Bootstrap 5.
 
+**Live demo:** <https://pet-adoption-platform-plku.onrender.com> (free tier, the first load can take about a minute)
+
 ---
 
 ## Features
@@ -133,9 +135,9 @@ erDiagram
 5. Shelter approves → application **APPROVED**, pet **ADOPTED**, other applications **REJECTED** (one transaction)
 6. Everyone involved gets a notification (sent by a background thread)
 
-## Concept map (for the marking rubric)
+## Project highlights
 
-| Rubric area | Where to look |
+| Area | Where to look |
 |-------------|---------------|
 | Problem understanding & solution design | This README · 3 roles, 5 core tables + settings · layered design · workflow above |
 | Core Java – inheritance & polymorphism | `User` → `Admin` / `ShelterUser` / `Adopter`, overridden `getDashboardPath()`; `UserFactory` |
@@ -153,15 +155,43 @@ session id is regenerated on login · every POST under `/app/*` needs a CSRF tok
 
 ## Ideas for improvement
 
-Pet photo upload · e-mail via JavaMail · connection pool (HikariCP) · unit tests with JUnit · pagination.
+Pet photo upload · e-mail via JavaMail · connection pool (HikariCP) · pagination · real-time chat and alerts.
 
-## Push to GitHub
+## Testing
+
+The project has **49 automated tests** (JUnit 4). They run against a throw-away in-memory H2 database
+(`src/test/resources/db.properties`), so your real data in `./data/` is never touched.
 
 ```bash
-git init
-git add .
-git commit -m "Online Pet Adoption Platform"
-git branch -M main
-git remote add origin https://github.com/<your-username>/pet-adoption-platform.git
-git push -u origin main
+mvn test
 ```
+
+| Test class | Tests | What it checks |
+|------------|-------|----------------|
+| `ValidatorTest` | 19 | Input rules: text length, email, phone, password, whole numbers |
+| `PasswordUtilTest` | 6 | Salted PBKDF2 hashing: random salts, same input gives same hash, wrong password is rejected |
+| `DaoIntegrationTest` | 24 | JDBC layer on a real database: user lookup and delete, pet search and filters (only approved pets are public), application save and JOIN queries, the approve-and-reject-others **transaction**, messages and settings |
+
+Expected result: `Tests run: 49, Failures: 0, Errors: 0` and `BUILD SUCCESS`.
+
+## Screenshots
+
+| Login | Admin dashboard |
+|-------|-----------------|
+| ![Login](docs/screenshots/login.png) | ![Admin dashboard](docs/screenshots/admin-dashboard.png) |
+
+| Shelter dashboard | Adopter dashboard |
+|-------------------|-------------------|
+| ![Shelter dashboard](docs/screenshots/shelter-dashboard.png) | ![Adopter dashboard](docs/screenshots/adopter-dashboard.png) |
+
+| Mobile view | Test results |
+|-------------|--------------|
+| ![Mobile view](docs/screenshots/mobile.png) | ![mvn test result](docs/screenshots/tests.png) |
+
+## Team
+
+| Member | Role |
+|--------|------|
+| **Prachi Singh** | Team lead. Designed and developed the application: database design, JDBC/DAO layer, services, servlets, JSP user interface, security, deployment and JUnit tests |
+| Srishti Chaudhary | Team member |
+| Om Singh | Team member |
